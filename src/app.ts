@@ -45,12 +45,13 @@ io.on('connection', (socket: Socket) => {
 	});
 
 	socket.on('start', async () => {
-		console.log(`[${socket.id}] Request to start game.`);
+		console.log(`[${socket.id}] ${user?.name} Requested to start game.`);
 
 		try {
 			if (!user) throw 'Socket is not associated with a user.';
 			if (!room) throw 'Socket is not associated with a room.';
 
+			io.to(room.name).emit('start');
 			await room.game.loadAssets();
 			room.game.nextState();
 		} catch (error) {
