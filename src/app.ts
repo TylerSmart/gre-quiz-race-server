@@ -45,17 +45,68 @@ io.on('connection', (socket: Socket) => {
 	});
 
 	socket.on('start', async () => {
-		console.log(`[${socket.id}] Request to start game.`);
+		console.log(`[${socket.id}] ${user?.name} requested to start game.`);
 
 		try {
 			if (!user) throw 'Socket is not associated with a user.';
 			if (!room) throw 'Socket is not associated with a room.';
 
+			io.to(room.name).emit('start');
 			await room.game.loadAssets();
 			room.game.nextState();
 		} catch (error) {
 			socket.emit('start-error', { error });
 		}
+	});
+
+	socket.on('ready-finished', async () => {
+		console.log(`[${socket.id}] ${user?.name} is ready. Now answering questions.`);
+
+		try {
+			if (!user) throw 'Socket is not associated with a user.';
+			if (!room) throw 'Socket is not associated with a room.';
+
+			room.game.nextState();
+		} catch (error) {
+			socket.emit('ready-finished-error', { error });
+		}
+	});
+
+	socket.on('switch', async () => {
+		console.log(`[${socket.id}] ${user?.name} requested to switch state.`);
+
+		try {
+			if (!user) throw 'Socket is not associated with a user.';
+			if (!room) throw 'Socket is not associated with a room.';
+
+			room.game.nextState();
+		} catch (error) {
+			socket.emit('switch-error', { error });
+		}
+	});
+
+	socket.on('review', async () => {
+		console.log(`[${socket.id}] ${user?.name} finished the round. Reviewing questions now.`);
+
+		try {
+			if (!user) throw 'Socket is not associated with a user.';
+			if (!room) throw 'Socket is not associated with a room.';
+
+			room.game.nextState();
+		} catch (error) {
+			socket.emit('review-error', { error });
+		}
+	});
+
+	socket.on('question', async (questionIndex: number) => {
+		if (room?.game)
+			console.log(
+				`[${socket.id}] ${user?.name} answered question. Now on question ${
+					room.game.questionIndex + 1
+				}`,
+			);
+
+		room?.game.nextQuestion();
 	});
 
 	socket.on('leave', (_) => {
@@ -72,6 +123,18 @@ io.on('connection', (socket: Socket) => {
 			room = undefined;
 		} catch (error) {
 			socket.emit('leave-error', { error });
+		}
+	});
+
+	socket.on('play-again', () => {
+		try {
+			if (!user) throw 'Socket is not associated with a user.';
+			if (!room) throw 'Socket is not associated with a room.';
+
+			room.game.reset();
+			room.game.nextState();
+		} catch (error) {
+			socket.emit('play-again-error', { error });
 		}
 	});
 });
