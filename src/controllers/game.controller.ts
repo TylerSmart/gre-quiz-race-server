@@ -16,27 +16,68 @@ export enum GameState {
 export class GameController {
 	public state$ = new BehaviorSubject<GameState | null>(null);
 	private questions: IQuestionData[] | null = [];
-	private questionIndex: number = 0;
+	public questionIndex: number = 0;
+
+	private player1Start: Date | null = null;
+	private player2Start: Date | null = null;
+	private player1End: Date | null = null;
+	private player2End: Date | null = null;
 
 	constructor(private users: User[], private room: Room) {
 		this.state$.subscribe(async (state) => {
 			switch (state) {
 				case GameState.Player1Ready:
 				case GameState.Player2Ready:
+					if (state == GameState.Player2Ready) this.player1End = new Date();
 					this.questionIndex = 0;
 					io.to(this.room.name).emit('game', {
 						state,
 						questions: this.questions,
 						questionIndex: this.questionIndex,
+						player1Start: this.player1Start,
+						player2Start: this.player2Start,
+						player1End: this.player1End,
+						player2End: this.player2End,
 					});
 					break;
 				case GameState.Player1:
 				case GameState.Player2:
+					if (state === GameState.Player1) this.player1Start = new Date();
+					if (state === GameState.Player2) this.player2Start = new Date();
+					this.questionIndex = 0;
 					io.to(this.room.name).emit('game', {
 						state,
+						questionIndex: this.questionIndex,
+						player1Start: this.player1Start,
+						player2Start: this.player2Start,
+						player1End: this.player1End,
+						player2End: this.player2End,
+					});
+					break;
+				case GameState.Review:
+					this.player2End = new Date();
+					io.to(this.room.name).emit('game', {
+						state,
+						player1Start: this.player1Start,
+						player2Start: this.player2Start,
+						player1End: this.player1End,
+						player2End: this.player2End,
 					});
 					break;
 			}
+		});
+	}
+
+	nextQuestion() {
+		this.questionIndex++;
+		io.to(this.room.name).emit('game', {
+			state: this.state$.getValue(),
+			questions: this.questions,
+			questionIndex: this.questionIndex,
+			player1Start: this.player1Start,
+			player2Start: this.player2Start,
+			player1End: this.player1End,
+			player2End: this.player2End,
 		});
 	}
 
@@ -44,7 +85,20 @@ export class GameController {
 		this.questions = await questionController.getQuestions();
 	}
 
+	reset() {
+		this.state$.next(null);
+		this.questions = null;
+		this.questionIndex = 0;
+		this.player1Start = null;
+		this.player2Start = null;
+		this.player1End = null;
+		this.player2End = null;
+	}
+
 	nextState() {
+		console.log(
+			`[${this.room.name}] Requesting to move to next state from ${this.state$.getValue()}.`,
+		);
 		switch (this.state$.getValue()) {
 			case GameState.Review:
 			case null:
