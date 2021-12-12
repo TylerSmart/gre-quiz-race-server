@@ -1,4 +1,4 @@
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, throwIfEmpty } from 'rxjs';
 import { questionController } from '.';
 import { io } from '../app';
 import { Room } from '../models/room.model';
@@ -23,11 +23,16 @@ export class GameController {
 	private player1End: Date | null = null;
 	private player2End: Date | null = null;
 
+	private freeze: boolean = false;
+	private fiftyFifty: boolean = false;
+
 	constructor(private users: User[], private room: Room) {
 		this.state$.subscribe(async (state) => {
 			switch (state) {
 				case GameState.Player1Ready:
 				case GameState.Player2Ready:
+					this.freeze = false;
+					this.fiftyFifty = false;
 					if (state == GameState.Player2Ready) this.player1End = new Date();
 					this.questionIndex = 0;
 					io.to(this.room.name).emit('game', {
@@ -117,5 +122,17 @@ export class GameController {
 				this.state$.next(GameState.Review);
 				break;
 		}
+	}
+
+	useFreeze() {
+		if (this.freeze) return console.error('Player has already used freeze!');
+		this.freeze = true;
+		io.to(this.room.name).emit('freeze');
+	}
+
+	useFiftyFifty() {
+		if (this.fiftyFifty) return console.error('Player has already used fiftyFifty!');
+		this.fiftyFifty = true;
+		io.to(this.room.name).emit('fiftyFifty');
 	}
 }

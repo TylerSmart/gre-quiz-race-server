@@ -2,6 +2,7 @@ import { createServer } from 'http';
 import { Server, Socket } from 'socket.io';
 import { environment } from './config/environment';
 import { roomController } from './controllers';
+import { GameController } from './controllers/game.controller';
 import { Room } from './models/room.model';
 import { User } from './models/user.model';
 
@@ -108,6 +109,9 @@ io.on('connection', (socket: Socket) => {
 
 		room?.game.nextQuestion();
 	});
+
+	socket.on('freeze', (_) => room?.game.useFreeze());
+	socket.on('fiftyFifty', (_) => room?.game.useFiftyFifty());
 
 	socket.on('leave', (_) => {
 		try {
