@@ -87,7 +87,9 @@ export class GameController {
 	}
 
 	async loadAssets() {
+		console.log("Here");
 		this.questions = await questionController.getQuestions();
+		console.log(this.questions);
 	}
 
 	reset() {

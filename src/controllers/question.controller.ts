@@ -1,3 +1,5 @@
+import axios from 'axios';
+
 export interface IAnswerData {
 	answer: string;
 	correct: boolean;
@@ -11,121 +13,44 @@ export interface IQuestionData {
 	review?: true;
 }
 
-const QUESTIONS: IQuestionData[] = [
-	{
-		question: 'Sample question 1',
-		answers: [
-			{ answer: 'Right answer', correct: true },
-			{ answer: 'Wrong answer 1', correct: false },
-			{ answer: 'Wrong answer 2', correct: false },
-			{ answer: 'Wrong answer 3', correct: false },
-		],
-		category: 'Category 1',
-		explanation: 'This is an explanation.',
-	},
-	{
-		question: 'Sample question 2',
-		answers: [
-			{ answer: 'Right answer', correct: true },
-			{ answer: 'Wrong answer 1', correct: false },
-			{ answer: 'Wrong answer 2', correct: false },
-			{ answer: 'Wrong answer 3', correct: false },
-		],
-		category: 'Category 1',
-		explanation: 'This is an explanation.',
-	},
-	{
-		question: 'Sample question 3',
-		answers: [
-			{ answer: 'Right answer', correct: true },
-			{ answer: 'Wrong answer 1', correct: false },
-			{ answer: 'Wrong answer 2', correct: false },
-			{ answer: 'Wrong answer 3', correct: false },
-		],
-		category: 'Category 1',
-		explanation: 'This is an explanation.',
-	},
-	{
-		question: 'Sample question 4',
-		answers: [
-			{ answer: 'Right answer', correct: true },
-			{ answer: 'Wrong answer 1', correct: false },
-			{ answer: 'Wrong answer 2', correct: false },
-			{ answer: 'Wrong answer 3', correct: false },
-		],
-		category: 'Category 1',
-		explanation: 'This is an explanation.',
-	},
-	{
-		question: 'Sample question 5',
-		answers: [
-			{ answer: 'Right answer', correct: true },
-			{ answer: 'Wrong answer 1', correct: false },
-			{ answer: 'Wrong answer 2', correct: false },
-			{ answer: 'Wrong answer 3', correct: false },
-		],
-		category: 'Category 1',
-		explanation: 'This is an explanation.',
-	},
-	{
-		question: 'Sample question 6',
-		answers: [
-			{ answer: 'Right answer', correct: true },
-			{ answer: 'Wrong answer 1', correct: false },
-			{ answer: 'Wrong answer 2', correct: false },
-			{ answer: 'Wrong answer 3', correct: false },
-		],
-		category: 'Category 1',
-		explanation: 'This is an explanation.',
-	},
-	{
-		question: 'Sample question 7',
-		answers: [
-			{ answer: 'Right answer', correct: true },
-			{ answer: 'Wrong answer 1', correct: false },
-			{ answer: 'Wrong answer 2', correct: false },
-			{ answer: 'Wrong answer 3', correct: false },
-		],
-		category: 'Category 1',
-		explanation: 'This is an explanation.',
-	},
-	{
-		question: 'Sample question 8',
-		answers: [
-			{ answer: 'Right answer', correct: true },
-			{ answer: 'Wrong answer 1', correct: false },
-			{ answer: 'Wrong answer 2', correct: false },
-			{ answer: 'Wrong answer 3', correct: false },
-		],
-		category: 'Category 1',
-		explanation: 'This is an explanation.',
-	},
-	{
-		question: 'Sample question 9',
-		answers: [
-			{ answer: 'Right answer', correct: true },
-			{ answer: 'Wrong answer 1', correct: false },
-			{ answer: 'Wrong answer 2', correct: false },
-			{ answer: 'Wrong answer 3', correct: false },
-		],
-		category: 'Category 1',
-		explanation: 'This is an explanation.',
-	},
-	{
-		question: 'Sample question 10',
-		answers: [
-			{ answer: 'Right answer', correct: true },
-			{ answer: 'Wrong answer 1', correct: false },
-			{ answer: 'Wrong answer 2', correct: false },
-			{ answer: 'Wrong answer 3', correct: false },
-		],
-		category: 'Category 1',
-		explanation: 'This is an explanation.',
-	},
-];
-
 export class QuestionController {
 	async getQuestions() {
-		return QUESTIONS;
+		const questions = await axios
+			.get('https://mfpd1xxqx7.execute-api.us-east-2.amazonaws.com/QA/Search')
+			.then((res: any) => {
+				console.log(res.data);
+				return res.data.records.map((questionData: any) => {
+					return new Object({
+						question: questionData.question,
+						answers: questionData.answers.map((answer: any, answerIndex: number) => {
+							return new Object({
+								answer: answer,
+								correct: answerIndex == 0,
+							});
+						}),
+						category: questionData.category,
+						explanation: questionData.explain,
+					});
+				});
+			});
+
+		questions.forEach((question: any) => {
+			question.answers = question.answers.sort(() => Math.random() - 0.5);
+		})
+
+		return new Array(10)
+			.fill(undefined)
+			.map(
+				(_) =>
+					questions.splice(
+						(Math.random() * 10) % questions.length,
+						1,
+					)[0] as IQuestionData,
+			);
+
+
+		
+
+		// return QUESTIONS;
 	}
 }
