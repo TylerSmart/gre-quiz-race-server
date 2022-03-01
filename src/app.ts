@@ -73,6 +73,12 @@ io.on('connection', (socket: Socket) => {
 		}
 	});
 
+	socket.on('review-question', async () => {
+		console.log(`[${socket.id}] ${user?.name} requested to review a question.`);
+
+		room?.game.markQuestionForReview();
+	});
+
 	socket.on('switch', async () => {
 		console.log(`[${socket.id}] ${user?.name} requested to switch state.`);
 

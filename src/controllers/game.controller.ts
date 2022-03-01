@@ -87,7 +87,7 @@ export class GameController {
 	}
 
 	async loadAssets() {
-		console.log("Here");
+		console.log('Here');
 		this.questions = await questionController.getQuestions();
 		console.log(this.questions);
 	}
@@ -136,5 +136,15 @@ export class GameController {
 		if (this.fiftyFifty) return console.error('Player has already used fiftyFifty!');
 		this.fiftyFifty = true;
 		io.to(this.room.name).emit('fiftyFifty');
+	}
+
+	markQuestionForReview() {
+		if (this.questions) {
+			if (this.state$.value == GameState.Player1) {
+				this.questions[this.questionIndex].reviewPlayer1 = true;
+			} else {
+				this.questions[this.questionIndex].reviewPlayer2 = true;
+			}
+		}
 	}
 }

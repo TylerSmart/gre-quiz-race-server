@@ -11,6 +11,8 @@ export interface IQuestionData {
 	category: string;
 	explanation: string;
 	review?: true;
+	reviewPlayer1?: true;
+	reviewPlayer2?: true;
 }
 
 export class QuestionController {
@@ -36,7 +38,7 @@ export class QuestionController {
 
 		questions.forEach((question: any) => {
 			question.answers = question.answers.sort(() => Math.random() - 0.5);
-		})
+		});
 
 		return new Array(10)
 			.fill(undefined)
@@ -47,9 +49,6 @@ export class QuestionController {
 						1,
 					)[0] as IQuestionData,
 			);
-
-
-		
 
 		// return QUESTIONS;
 	}
